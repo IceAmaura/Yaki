@@ -1,0 +1,11 @@
+version = 0.1
+version_name = "Exodus"
+
+flavor_text {
+    "Yaki, reporting in!"
+    "Wah!!!"
+    "We don't talk about the fourth wah..."
+    "Is anyone there? Oh, hey!"
+    "\n> Commencing Yaki System Check...\n> Memory Unit: Green\n> Initializing Tactics Log\n> Loading Geographical Data\n> Vitals: Green\n> Remaining MP: 100%\n> Black Box Temperature: Normal\n> Black Box Internal Pressure: Normal\n\nFor the Glory of Mankind!"
+    "For the Glory of Mankind!"
+}

@@ -1,0 +1,2 @@
+//Rename this file to env.pkl and replace YOUR_TOKEN with your bot token
+bot_token = "YOUR_TOKEN"
