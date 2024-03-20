@@ -44,12 +44,6 @@ class Wordle(commands.Cog, name="wordle"):
                     # I hate this line in particular
                     players[message.author.display_name]["current_step"] = wordle_num if players[message.author.display_name]["current_step"] == 0 else players[message.author.display_name]["current_step"]
                     wordle_diff = wordle_num - players[message.author.display_name]["current_step"]
-                    print(f"""
-                        message.author.display_name: {message.author.display_name}
-                        wordle_num: {wordle_num}
-                        players[message.author.display_name]["current_step"]: {players[message.author.display_name]["current_step"]}
-                        wordle_diff: {wordle_diff}
-                        """)
                     if wordle_diff > 1 or wordle_diff < -1:
                         final_streaks[message.author.display_name] = players[message.author.display_name]["streak"]
                         del players[message.author.display_name]
