@@ -5,6 +5,7 @@ import json
 import subprocess
 import random
 from discord.ext import commands
+from discord.ext.commands import bot
 from types import SimpleNamespace
 
 takoart = """
@@ -37,7 +38,7 @@ takoart = """
 """
 # Yaki 0.1 Exodus
 # ------------------
-class Yaki(discord.Client):
+class Yaki(commands.Bot):
     """The main Yaki discord bot class. It could also be seen as Yaki's brain."""
 
     async def on_ready(self):
@@ -50,20 +51,25 @@ class Yaki(discord.Client):
             async with self.system_channel.typing():
                 await self.system_channel.send("Waking up from my nap, please wait... <a:Spinner0:1219716864599654492>")
 
-                # Set up environment
+                # Setup environment
                 self.status_message = await self.system_channel.send("```> Loading configuration...```")
 
                 # Compile pkl files
                 self.status_message = await self._append_code_block(self.status_message, ">> Compiling pkl files...")
-                await self._compile_pkl_files(self.system_channel, self.status_message)
+                self.status_message = await self._compile_pkl_files(self.system_channel, self.status_message)
 
                 # Get configuration from compiled file
                 self.status_message = await self._append_code_block(self.status_message, ">> Reading config from file...")
                 await self._read_config()
+                self.status_message = await self._append_code_block(self.status_message, f"> Config OK!")
 
-                # Assemble and print tako art
+                # Load extensions
+                self.status_message = await self._append_code_block(self.status_message, "\n> Loading extensions and cogs...")
+                await self._load_extensions()
+
+                # Assemble and print end message
                 await asyncio.sleep(2)
-                self.status_message = await self._append_code_block(self.status_message, f"{takoart}\nYaki v0.1 Exodus is online! {random.choice(self.config.flavor_text)}")
+                self.status_message = await self._append_code_block(self.status_message, f"{takoart}Yaki v0.1 Exodus is online! {random.choice(self.config.flavor_text)}")
 
     async def _compile_pkl_files(self, channel, status_message):
         # Retrieve a list of files in the 'pkl' directory
@@ -88,15 +94,27 @@ class Yaki(discord.Client):
                 # Handle the results of the command
                 if process.returncode == 0:
                     print(f"Compiled {filename}")
-                    self.status_message = await self._append_code_block(self.status_message, f">>> {filename} compiled successfully")
+                    status_message = await self._append_code_block(status_message, f">>> {filename} compiled successfully")
                 else:
                     print(f"Error executing command for {filename}: {stderr.decode().strip()}")
-                    self.status_message = await self._append_code_block(self.status_message, f">>> !!! {filename} compilation failed: {stderr.decode().strip()} !!!")
+                    status_message = await self._append_code_block(status_message, f">>> !!! {filename} compilation failed: {stderr.decode().strip()} !!!")
                     await self._handle_fatal_exit(channel)
+
+        return status_message
 
     async def _read_config(self):
         with open('config.json', 'r') as f:
             self.config = json.load(f, object_hook=lambda d: SimpleNamespace(**d))
+
+    async def _load_extensions(self):
+        try:
+            for extension in self.config.extensions:
+                self.status_message = await self._append_code_block(self.status_message, f">> Loading extension: {extension}")
+                await self.load_extension(extension)
+            self.status_message = await self._append_code_block(self.status_message, f"> All extensions OK!")
+        except Exception as e:
+            self.status_message = await self._append_code_block(self.status_message, f">>> !!! Failed to load extension/cog: {e} !!!")
+            await self._handle_fatal_exit(self.system_channel)
 
     async def _append_code_block(self, message, text):
         last_code_block_index = message.content.rfind("```")
@@ -137,5 +155,21 @@ with open('env.json', 'r') as f:
 intents = discord.Intents.default()
 intents.message_content = True
 
-client = Yaki(intents=intents)
+client = Yaki('.yaki ', intents=intents)
+
+@client.hybrid_command(name='reload', help='Reloads all extensions.')
+async def reload_extensions(ctx):
+    for extension in client.config.extensions:
+        await client.reload_extension(extension)
+        print(f"Reloaded {extension}")
+    await ctx.send("All extensions OK!!")
+
+@client.hybrid_command(name='recompile', help='Recompiles all pkl files.')
+async def recompile_config(ctx):
+    status_message = await client.system_channel.send("```>> Recompiling pkl files...```")
+    status_message = await client._compile_pkl_files(ctx.channel, status_message)
+    status_message = await client._append_code_block(status_message, ">> Reading config from file...")
+    await client._read_config()
+    await client._append_code_block(status_message, "> Config OK!")
+
 client.run(bot_token)

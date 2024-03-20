@@ -1,6 +1,17 @@
 version = 0.1
 version_name = "Exodus"
 
+extensions {
+    "cogs.starboard"
+}
+
+// The amount of star reacts required for the bot to add a starboard message
+starboard_reaction_count = 2
+star_emojis {
+    "⭐"
+    "🌟"
+}
+
 flavor_text {
     "Yaki, reporting in!"
     "Wah!!!"
@@ -8,4 +19,7 @@ flavor_text {
     "Is anyone there? Oh, hey!"
     "\n> Commencing Yaki System Check...\n> Memory Unit: Green\n> Initializing Tactics Log\n> Loading Geographical Data\n> Vitals: Green\n> Remaining MP: 100%\n> Black Box Temperature: Normal\n> Black Box Internal Pressure: Normal\n\nFor the Glory of Mankind!"
     "For the Glory of Mankind!"
+    "Let's burn it up!"
+    "Don't trust the vending machines; I've heard them plotting."
+    "If you can't handle me at my 404, you don't deserve me at my 200 OK."
 }
