@@ -9,6 +9,7 @@ class Starboard(commands.Cog, name="starboard"):
     def __init__(self, bot):
         self.bot = bot
         self.config = bot.config
+        self.guild = bot.guild
 
     @staticmethod
     async def build_starboard_embed(message: discord.Message):
@@ -54,11 +55,25 @@ class Starboard(commands.Cog, name="starboard"):
                 except discord.HTTPException as e:
                     await ctx.send(f"Failed to read history for {channel.mention} due to an HTTP error: {e}")
 
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
+        # Check if the reaction is not from a bot and is a star emoji
+        if user.bot or reaction.emoji not in self.config.star_emojis:
+            return
+
+        if reaction.emoji in self.config.star_emojis and reaction.count >= self.config.starboard_reaction_count:
+            await self._add_starred_message(reaction.message)
+
     async def _add_starred_message(self, message: discord.Message):
         embed = await self.build_starboard_embed(message)
-        starboard_channel = discord.utils.get(message.guild.text_channels, name="starboard")
+        starboard_channel = self.guild.get_channel(self.config.starboard_channel)
         if starboard_channel is None:
             return
+
+        async for star_message in starboard_channel.history(limit=None):
+            if star_message.embeds and star_message.embeds[0].url == message.jump_url:
+                await star_message.edit(embed=embed)
+                return
         return await starboard_channel.send(embed=embed)
 
 async def setup(bot) -> None:

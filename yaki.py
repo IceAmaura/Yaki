@@ -43,9 +43,8 @@ class Yaki(commands.Bot):
 
     async def on_ready(self):
         # We should ideally ever only be in one guild
-        for guild in self.guilds:
-            #self.system_channel = guild.system_channel
-            self.system_channel = guild.get_channel(1219707093695729846)
+        self.guild = self.guilds[0]
+        self.system_channel = self.guild.get_channel(1219707093695729846)
 
         if self.system_channel:
             async with self.system_channel.typing():
@@ -71,6 +70,7 @@ class Yaki(commands.Bot):
                 await asyncio.sleep(2)
                 self.status_message = await self._append_code_block(self.status_message, f"{takoart}Yaki v0.1 Exodus is online! {random.choice(self.config.flavor_text)}")
 
+        self.starboard_channel = self.guild.get_channel(self.config.starboard_channel)
     async def _compile_pkl_files(self, channel, status_message):
         # Retrieve a list of files in the 'pkl' directory
         pkl_files = [f for f in os.listdir('pkl') if os.path.isfile(os.path.join('pkl', f))]

@@ -12,6 +12,7 @@ Right now, Yaki can:
 
 - Compile pkl based files for programmable configuration
 - Print MOTD messages
+- Handle a starboard
 
 Ideally, Yaki will be able to:
 
