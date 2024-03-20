@@ -159,10 +159,16 @@ client = Yaki('.yaki ', intents=intents)
 
 @client.hybrid_command(name='reload', help='Reloads all extensions.')
 async def reload_extensions(ctx):
+    status_message = await ctx.send("```>> Reloading extensions...```")
     for extension in client.config.extensions:
-        await client.reload_extension(extension)
-        print(f"Reloaded {extension}")
-    await ctx.send("All extensions OK!!")
+        try:
+            status_message = await client._append_code_block(status_message, f">> Loading extension: {extension}")
+            await client.reload_extension(extension)
+        except commands.ExtensionNotLoaded:
+            await client.load_extension(extension)
+        except commands.ExtensionFailed:
+            status_message = await client._append_code_block(status_message, f">>> !!! Failed to reload extension: {extension} !!!")
+    await client._append_code_block(status_message, f">> All extensions OK!!")
 
 @client.hybrid_command(name='recompile', help='Recompiles all pkl files.')
 async def recompile_config(ctx):

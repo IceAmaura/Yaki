@@ -3,6 +3,7 @@ version_name = "Exodus"
 
 extensions {
     "cogs.starboard"
+    "cogs.wordle"
 }
 
 // The amount of star reacts required for the bot to add a starboard message
@@ -12,6 +13,8 @@ star_emojis {
     "⭐"
     "🌟"
 }
+
+wordle_channel = 934523668296515654
 
 flavor_text {
     "Yaki, reporting in!"
