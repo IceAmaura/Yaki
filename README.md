@@ -1,6 +1,6 @@
 # Yaki
 
-## The discord bot that does everything badly and nothing well (except always)
+The discord bot that does everything badly and nothing well (except always)
 
 ### What is Yaki?
 
