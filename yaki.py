@@ -1,6 +1,7 @@
 import os
 import discord
 import asyncio
+import aioconsole
 import json
 import subprocess
 import random
@@ -36,7 +37,7 @@ takoart = """
     `--'  `--`--'`--'`--'`--'
 
 """
-# Yaki 0.1 Exodus
+# Yaki Bot
 # ------------------
 class Yaki(commands.Bot):
     """The main Yaki discord bot class. It could also be seen as Yaki's brain."""
@@ -68,9 +69,13 @@ class Yaki(commands.Bot):
 
                 # Assemble and print end message
                 await asyncio.sleep(2)
-                self.status_message = await self._append_code_block(self.status_message, f"{takoart}Yaki v0.1 Exodus is online! {random.choice(self.config.flavor_text)}")
+                self.status_message = await self._append_code_block(self.status_message, f"{takoart}Yaki v{self.config.version} {self.config.version_name} is online! {random.choice(self.config.flavor_text)}")
 
         self.starboard_channel = self.guild.get_channel(self.config.starboard_channel)
+        self.is_alive = True
+
+        task = self.loop.create_task(self._handle_console_input())
+
     async def _compile_pkl_files(self, channel, status_message):
         # Retrieve a list of files in the 'pkl' directory
         pkl_files = [f for f in os.listdir('pkl') if os.path.isfile(os.path.join('pkl', f))]
@@ -110,7 +115,10 @@ class Yaki(commands.Bot):
         try:
             for extension in self.config.extensions:
                 self.status_message = await self._append_code_block(self.status_message, f">> Loading extension: {extension}")
-                await self.load_extension(extension)
+                try:
+                    await self.load_extension(extension)
+                except commands.ExtensionAlreadyLoaded as e:
+                    self.status_message = await self._append_code_block(self.status_message, f">>> Cat napped extension: {extension} !!!")
             self.status_message = await self._append_code_block(self.status_message, f"> All extensions OK!")
         except Exception as e:
             self.status_message = await self._append_code_block(self.status_message, f">>> !!! Failed to load extension/cog: {e} !!!")
@@ -126,6 +134,40 @@ class Yaki(commands.Bot):
         await channel.send("```>>> !!! FATAL ERROR: Exiting...```")
         await self.close()
         exit()
+
+    async def _handle_console_input(self):
+        while True:
+            command = await aioconsole.ainput("Yaki > ")
+            terminal_cog = self.get_cog("terminal_handler")
+            if terminal_cog:
+                await terminal_cog.router(command)
+            else:
+                print("Console cog not loaded!")
+
+    @bot.hybrid_command(name='reload', help='Reloads all extensions.')
+    async def reload_extensions(self, ctx):
+        if ctx == None:
+            ctx = self.guild.get_channel(self.config.bot_channel)
+
+        status_message = await ctx.send("```>> Reloading extensions...```")
+        for extension in client.config.extensions:
+            try:
+                status_message = await self._append_code_block(status_message, f">> Loading extension: {extension}")
+                await self.reload_extension(extension)
+            except commands.ExtensionNotLoaded:
+                await self.load_extension(extension)
+            except commands.ExtensionFailed:
+                status_message = await self._append_code_block(status_message, f">>> !!! Failed to reload extension: {extension} !!!")
+        await self._append_code_block(status_message, f">> All extensions OK!!")
+
+    @bot.hybrid_command(name='recompile', help='Recompiles all pkl files.')
+    async def recompile_config(self, ctx):
+        bot_channel = self.guild.get_channel(self.config.bot_channel)
+        status_message = await bot_channel.send("```>> Recompiling pkl files...```")
+        status_message = await self._compile_pkl_files(ctx.channel, status_message)
+        status_message = await self._append_code_block(status_message, ">> Reading config from file...")
+        await self._read_config()
+        await self._append_code_block(status_message, "> Config OK!")
 
 # Check if env.json exists, and if not, compile it from pkl/env.json
 if not os.path.exists('env.json'):
@@ -156,26 +198,4 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 client = Yaki('.yaki ', intents=intents)
-
-@client.hybrid_command(name='reload', help='Reloads all extensions.')
-async def reload_extensions(ctx):
-    status_message = await ctx.send("```>> Reloading extensions...```")
-    for extension in client.config.extensions:
-        try:
-            status_message = await client._append_code_block(status_message, f">> Loading extension: {extension}")
-            await client.reload_extension(extension)
-        except commands.ExtensionNotLoaded:
-            await client.load_extension(extension)
-        except commands.ExtensionFailed:
-            status_message = await client._append_code_block(status_message, f">>> !!! Failed to reload extension: {extension} !!!")
-    await client._append_code_block(status_message, f">> All extensions OK!!")
-
-@client.hybrid_command(name='recompile', help='Recompiles all pkl files.')
-async def recompile_config(ctx):
-    status_message = await client.system_channel.send("```>> Recompiling pkl files...```")
-    status_message = await client._compile_pkl_files(ctx.channel, status_message)
-    status_message = await client._append_code_block(status_message, ">> Reading config from file...")
-    await client._read_config()
-    await client._append_code_block(status_message, "> Config OK!")
-
 client.run(bot_token)

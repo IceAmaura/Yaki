@@ -1,20 +1,24 @@
-version = 0.1
-version_name = "Exodus"
+version = 0.2
+version_name = "Deathset"
 
 extensions {
+    "cogs.brain"
     "cogs.starboard"
     "cogs.wordle"
+    "cogs.terminal_handler"
 }
 
 // The amount of star reacts required for the bot to add a starboard message
 starboard_reaction_count = 2
-starboard_channel = 1219824483179696210
 star_emojis {
     "⭐"
     "🌟"
 }
 
-wordle_channel = 934523668296515654
+wordle_channel = "wordle"
+bot_channel = "bot-testing"
+starboard_channel = "starboard"
+political_channel = "politics-but-on-cleoconnect24"
 
 flavor_text {
     "Yaki, reporting in!"
