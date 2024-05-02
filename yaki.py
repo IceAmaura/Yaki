@@ -1,4 +1,6 @@
 import os
+import sys
+import logging
 import discord
 import asyncio
 import aioconsole
@@ -137,12 +139,17 @@ class Yaki(commands.Bot):
 
     async def _handle_console_input(self):
         while True:
-            command = await aioconsole.ainput("Yaki > ")
-            terminal_cog = self.get_cog("terminal_handler")
-            if terminal_cog:
-                await terminal_cog.router(command)
-            else:
-                print("Console cog not loaded!")
+            try:
+                command = await aioconsole.ainput("Yaki > ")
+                terminal_cog = self.get_cog("terminal_handler")
+                if terminal_cog:
+                    await terminal_cog.router(command)
+                else:
+                    print("Console cog not loaded!")
+            except Exception as e:
+                print(f"Error handling console input: {e}")
+                logging.error(f"Error handling console input: {e}")
+                continue
 
     @bot.hybrid_command(name='reload', help='Reloads all extensions.')
     async def reload_extensions(self, ctx):
@@ -197,5 +204,9 @@ with open('env.json', 'r') as f:
 intents = discord.Intents.default()
 intents.message_content = True
 
+logging.basicConfig(filename='error.log', level=logging.ERROR)
 client = Yaki('.yaki ', intents=intents)
-client.run(bot_token)
+try:
+    client.run(bot_token)
+except Exception as e:
+    logging.exception(f"Unhandled exception: {e}")

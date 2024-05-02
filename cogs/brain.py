@@ -15,7 +15,15 @@ class Brain(commands.Cog, name="brain"):
     async def on_message(self, message):
         # Check if the message is from the bot itself
         if message.author == self.bot.user:
+            print(f"#{message.channel.name} <{message.author}>: {message.content}")
             return
+
+        # Log the message
+        # TODO: More elegant curses console
+        if len(message.content) > 1023:
+            print(f"#{message.channel.name} <{message.author}>: message too long to display", end="\nYaki > ")
+        else:
+            print(f"#{message.channel.name} <{message.author}>: {message.content}", end="\nYaki > ")
 
         # Chloe impersonator (this is a joke)
         if random.randint(1, 100) == 1 and message.channel.id != self.config.political_channel:

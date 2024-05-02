@@ -35,25 +35,25 @@ class Starboard(commands.Cog, name="starboard"):
     @starboard.command(name="process_starboard", aliases=["psb"], description="Process previous starred messages")
     async def process_starboard(self, ctx: context.Context, days: int = 30):
             # Get the time to start fetching messages from
-            after_time = ctx.message.created_at - datetime.timedelta(days)
+            after_time = datetime.datetime.now() - datetime.timedelta(days)
 
             # Loop through all channels
-            for channel in ctx.guild.text_channels:
+            for channel in self.guild.text_channels:
+                print(f"Processing messages in {channel.name}")
                 try:
                     # Fetch messages after the specified time
                     current_message = 0
                     async for message in channel.history(limit=None, after=after_time):
                         current_message += 1
-                        print (f"Processing message {current_message} in {channel.name}")
                         # Check if the message has a star reaction
                         for reaction in message.reactions:
                             if reaction.emoji in self.config.star_emojis and reaction.count >= self.config.starboard_reaction_count:  # You can add more star-like emojis if necessary
                                 await self._add_starred_message(message)
                                 break
                 except discord.Forbidden:
-                    await ctx.send(f"I don't have permissions to read the history of {channel.mention}")
+                    print(f"I don't have permissions to read the history of {channel.mention}")
                 except discord.HTTPException as e:
-                    await ctx.send(f"Failed to read history for {channel.mention} due to an HTTP error: {e}")
+                    print(f"Failed to read history for {channel.mention} due to an HTTP error: {e}")
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
