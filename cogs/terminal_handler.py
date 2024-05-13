@@ -25,6 +25,16 @@ class TerminalHandler(commands.Cog, name="terminal_handler"):
     async def exit(self):
         await self.bot.close()
 
+    async def status(self, *args):
+        if args[0].lower() == "playing":
+            await self.bot.change_presence(activity=discord.Game(name=" ".join(args[1:])))
+        else:
+            activity_type = getattr(discord.ActivityType, args[0].lower(), None)
+            if activity_type:
+                await self.bot.change_presence(activity=discord.Activity(type=activity_type, name=" ".join(args[1:])))
+            else:
+                print(f"Activity type '{args[0]}' not found.")
+
     async def say(self, *args):
         channel_name = args[0]
         channel = discord.utils.get(self.bot.get_all_channels(), name=channel_name)
